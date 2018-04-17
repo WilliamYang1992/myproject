@@ -16,7 +16,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import path, re_path
 
 from accounts import views as account_views
 from boards import views as board_views
@@ -36,9 +36,10 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetDoneView.as_view(
         template_name='password_reset_done.html'
     ), name='password_reset_done'),
-    path('reset/<uuid:token>/', auth_views.PasswordResetConfirmView.as_view(
-        template_name='password_reset_confirm.html'
-    ), name='password_reset_confirm'),
+    re_path(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+            auth_views.PasswordResetConfirmView.as_view(
+                template_name='password_reset_confirm.html'
+            ), name='password_reset_confirm'),
     path('reset/complete/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'
     ), name='password_reset_complete'),
