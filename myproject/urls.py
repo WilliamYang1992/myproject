@@ -22,7 +22,7 @@ from accounts import views as account_views
 from boards import views as board_views
 
 urlpatterns = [
-    path('', board_views.home, name='home'),
+    path('', board_views.BoardListView.as_view(), name='home'),
     path('signup/', account_views.signup, name='signup'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
@@ -30,6 +30,8 @@ urlpatterns = [
     path('boards/<int:pk>/new/', board_views.new_topic, name='new_topic'),
     path('boards/<int:pk>/topics/<int:topic_pk>/', board_views.topic_posts, name='topic_posts'),
     path('boards/<int:pk>/topics/<int:topic_pk>/reply/', board_views.reply_topic, name='reply_topic'),
+    path('boards/<int:pk>/topics/<int:topic_pk>/posts/<int:post_pk>/edit/', board_views.PostUpdateView.as_view(),
+         name='edit_post'),
     path('reset/', auth_views.PasswordResetView.as_view(
         template_name='password_reset.html',
         email_template_name='password_reset_email.html',
