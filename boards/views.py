@@ -18,20 +18,38 @@ class BoardListView(ListView):
     template_name = 'home.html'
 
 
-def board_topics(request, pk):
-    board = get_object_or_404(Board, pk=pk)
-    queryset = board.topics.order_by('-last_updated').annotate(replies=Count('posts') - 1)
-    page = request.GET.get('page', 1)
+class TopicListView(ListView):
+    model = Topic
+    context_object_name = 'topics'
+    template_name = 'topics.html'
+    paginate_by = 20
 
-    paginator = Paginator(queryset, 10)
+    def get_queryset(self):
+        self.board = get_object_or_404(Board, pk=self.kwargs.get('pk'))
+        queryset = self.board.topics.order_by('-last_updated').annotate(replies=Count('posts') - 1)
+        return queryset
 
-    try:
-        topics = paginator.page(page)
-    except PageNotAnInteger:
-        topics = paginator.page(1)
-    except EmptyPage:
-        topics = paginator.page(paginator.num_pages)
-    return render(request, 'topics.html', {'board': board, 'topics': topics})
+    def get_context_data(self, **kwargs):
+        kwargs['board'] = self.board
+        return super(TopicListView, self).get_context_data(**kwargs)
+
+
+class PostsListView(ListView):
+    model = Post
+    context_object_name = 'posts'
+    template_name = 'topic_posts.html'
+    paginate_by = 2
+
+    def get_queryset(self):
+        self.topic = get_object_or_404(Topic, board__pk=self.kwargs.get('pk'), pk=self.kwargs.get('topic_pk'))
+        queryset = self.topic.posts.order_by('created_at')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        self.topic.views += 1
+        self.topic.save()
+        kwargs['topic'] = self.topic
+        return super(PostsListView, self).get_context_data(**kwargs)
 
 
 def topic_posts(request, pk, topic_pk):
