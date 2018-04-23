@@ -6,7 +6,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import UpdateView, ListView
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .forms import NewTopicForm, PostForm
 from .models import Board, Topic, Post
@@ -40,16 +39,19 @@ class PostsListView(ListView):
     template_name = 'topic_posts.html'
     paginate_by = 2
 
+    def get_context_data(self, **kwargs):
+        session_key = 'viewed_topic_{}'.format(self.topic.pk)
+        if not self.request.session.get(session_key, False)
+            self.topic.views += 1
+            self.topic.save()
+            self.request.session[session_key] = True
+        kwargs['topic'] = self.topic
+        return super(PostsListView, self).get_context_data(**kwargs)
+
     def get_queryset(self):
         self.topic = get_object_or_404(Topic, board__pk=self.kwargs.get('pk'), pk=self.kwargs.get('topic_pk'))
         queryset = self.topic.posts.order_by('created_at')
         return queryset
-
-    def get_context_data(self, **kwargs):
-        self.topic.views += 1
-        self.topic.save()
-        kwargs['topic'] = self.topic
-        return super(PostsListView, self).get_context_data(**kwargs)
 
 
 def topic_posts(request, pk, topic_pk):
@@ -90,6 +92,8 @@ def reply_topic(request, pk, topic_pk):
             post.topic = topic
             post.created_by = request.user
             post.save()
+            topic.last_updated = timezone.now()
+            topic.save()
             return redirect('topic_posts', pk=pk, topic_pk=pk)
     else:
         form = PostForm()
