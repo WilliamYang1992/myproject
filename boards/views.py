@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import UpdateView, ListView
+from django.urls import reverse
 
 from .forms import NewTopicForm, PostForm
 from .models import Board, Topic, Post
@@ -41,7 +42,7 @@ class PostsListView(ListView):
 
     def get_context_data(self, **kwargs):
         session_key = 'viewed_topic_{}'.format(self.topic.pk)
-        if not self.request.session.get(session_key, False)
+        if not self.request.session.get(session_key, False):
             self.topic.views += 1
             self.topic.save()
             self.request.session[session_key] = True
@@ -52,13 +53,6 @@ class PostsListView(ListView):
         self.topic = get_object_or_404(Topic, board__pk=self.kwargs.get('pk'), pk=self.kwargs.get('topic_pk'))
         queryset = self.topic.posts.order_by('created_at')
         return queryset
-
-
-def topic_posts(request, pk, topic_pk):
-    topic = get_object_or_404(Topic, board__pk=pk, pk=topic_pk)
-    topic.views += 1
-    topic.save()
-    return render(request, 'topic_posts.html', {'topic': topic})
 
 
 @login_required
@@ -92,9 +86,22 @@ def reply_topic(request, pk, topic_pk):
             post.topic = topic
             post.created_by = request.user
             post.save()
+
             topic.last_updated = timezone.now()
             topic.save()
-            return redirect('topic_posts', pk=pk, topic_pk=pk)
+
+            topic_url = reverse('topic_posts', kwargs={
+                'pk': pk,
+                'topic_pk': topic_pk
+            })
+
+            topic_post_url = '{url}?page={page}#{id}'.format(
+                url=topic_url,
+                page=topic.get_page_count(),
+                id=post.pk
+            )
+
+            return redirect(topic_post_url)
     else:
         form = PostForm()
     return render(request, 'reply_post.html', {'topic': topic, 'form': form})
