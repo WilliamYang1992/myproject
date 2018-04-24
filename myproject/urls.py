@@ -27,9 +27,9 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('boards/<int:pk>/', board_views.TopicListView.as_view(), name='board_topics'),
-    path('boards/<int:pk>/new/', board_views.new_topic, name='new_topic'),
+    path('boards/<int:pk>/new/', board_views.NewTopicView.as_view(), name='new_topic'),
     path('boards/<int:pk>/topics/<int:topic_pk>/', board_views.PostsListView.as_view(), name='topic_posts'),
-    path('boards/<int:pk>/topics/<int:topic_pk>/reply/', board_views.reply_topic, name='reply_topic'),
+    path('boards/<int:pk>/topics/<int:topic_pk>/reply/', board_views.ReplyPostView.as_view(), name='reply_topic'),
     path('boards/<int:pk>/topics/<int:topic_pk>/posts/<int:post_pk>/edit/', board_views.PostUpdateView.as_view(),
          name='edit_post'),
     path('reset/', auth_views.PasswordResetView.as_view(

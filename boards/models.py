@@ -4,9 +4,8 @@ import math
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.text import Truncator
 from django.utils.html import mark_safe
-
+from django.utils.text import Truncator
 from markdown import markdown
 
 
@@ -52,6 +51,7 @@ class Topic(models.Model):
 
     def get_last_ten_posts(self):
         return self.posts.order_by('-created_at')[:10]
+
 
 class Post(models.Model):
     message = models.TextField(max_length=4000)
