@@ -1,8 +1,11 @@
 # coding: utf-8
 
+from django.contrib.auth.models import User
+
 from django import forms
 from django.test import TestCase
 from ..templatetags.form_tags import field_type, input_class
+from ..templatetags.gravatar import gravatar
 
 
 class ExampleForm(forms.Form):
@@ -39,3 +42,17 @@ class InputClassTests(TestCase):
             'password': 'Qq123456'
         })
         self.assertEquals('form-control is-invalid', input_class(form['name']))
+
+
+class GravatarTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='John',
+            email='John@example.com',
+            password='123456'
+        )
+
+    def test_valid_input(self):
+        url = gravatar(self.user)
+        self.assertTrue(isinstance(url, str))
+        self.assertIn('https://www.gravatar.com/avatar/', url)
